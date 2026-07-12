@@ -25,7 +25,7 @@ twilio_client = Client(TWILIO_SID, TWILIO_TOKEN)
 
 parent_phone = None
 alert_cooldown = {}
-alert_prefs = {"crying": True, "scream": True, "explosion": True}
+alert_prefs = {"crying": True}
 api_key_header = APIKeyHeader(name="X-API-Key")
 
 app = FastAPI()
@@ -37,7 +37,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-CATEGORIES = ["scream", "crying", "explosion", "background"]
+CATEGORIES = ["crying", "background"]
 SR = 22050
 DURATION = 2
 STEP = 1
@@ -57,8 +57,6 @@ class PhoneRequest(BaseModel):
 
 class PrefsRequest(BaseModel):
     crying: bool = True
-    scream: bool = True
-    explosion: bool = True
 
 
 def send_sms(label: str):
@@ -73,9 +71,7 @@ def send_sms(label: str):
         return
     alert_cooldown[label] = now
     messages = {
-        "scream": "🚨 התרעה: זוהתה צרחה בבית!",
         "crying": "👶 התרעה: התינוק בוכה!",
-        "explosion": "💥 התרעה: זוהה פיצוץ בבית!",
     }
     twilio_client.messages.create(
         body=messages.get(label, "🚨 התרעת SOS"),

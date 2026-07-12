@@ -4,7 +4,7 @@ import librosa
 
 RAW_DIR = "data/raw"
 PROCESSED_DIR = "data/processed"
-CATEGORIES = ["scream", "crying", "explosion", "background"]
+CATEGORIES = ["crying", "background"]
 
 def process_file(file_path):
     audio, sr = librosa.load(file_path, sr=22050, duration=2.0)

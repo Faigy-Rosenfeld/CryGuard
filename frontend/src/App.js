@@ -6,16 +6,12 @@ const WS_URL = `ws://localhost:8080/ws?api_key=${API_KEY}`;
 const API_URL = "http://localhost:8080";
 
 const LABELS = {
-  scream:     { text: "צרחה",  color: "#e74c3c" },
-  crying:     { text: "בכי",   color: "#e67e22" },
-  explosion:  { text: "פיצוץ", color: "#c0392b" },
-  background: { text: "רקע",   color: "#1D9E75" },
+  crying:     { text: "בכי תינוק", color: "#e67e22" },
+  background: { text: "רקע",       color: "#1D9E75" },
 };
 
 const ICONS = {
-  scream: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
   crying: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7"/></svg>,
-  explosion: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
   background: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>,
 };
 
@@ -26,7 +22,7 @@ export default function App() {
   const [alerts, setAlerts] = useState([]);
   const [phone, setPhone] = useState("");
   const [phoneSaved, setPhoneSaved] = useState(false);
-  const [alertPrefs, setAlertPrefs] = useState({ crying: true, scream: true, explosion: true });
+  const [alertPrefs, setAlertPrefs] = useState({ crying: true });
   const ws = useRef(null);
   const canvasRef = useRef(null);
   const pointsRef = useRef(Array.from({ length: 90 }, () => 0.05));
@@ -213,7 +209,7 @@ export default function App() {
         {/* הגדרות */}
         <div className="panel">
           <p className="settings-label">הגדרות SMS</p>
-          {[["crying", "בכי"], ["scream", "צרחה"], ["explosion", "פיצוץ"]].map(([key, label]) => (
+          {[["crying", "בכי תינוק"]].map(([key, label]) => (
             <div className="toggle-row" key={key}>
               <span className="label">SMS על {label}</span>
               <button
