@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import "./App.css";
 
-const API_KEY = "sos-secret-key-2024";
+const API_KEY = "cryguard-secret-key-2024";
 const WS_URL  = `ws://localhost:8080/ws?api_key=${API_KEY}`;
 const API_URL = "http://localhost:8080";
 
@@ -112,17 +112,34 @@ export default function App() {
     const h = cssH;
     ctx.clearRect(0, 0, w, h);
 
+    const drawRoundedBar = (x, y, width, height, radius) => {
+      const r = Math.min(radius, width / 2, height / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + width, y, x + width, y + height, r);
+      ctx.arcTo(x + width, y + height, x, y + height, r);
+      ctx.arcTo(x, y + height, x, y, r);
+      ctx.arcTo(x, y, x + width, y, r);
+      ctx.closePath();
+      ctx.fill();
+    };
+
     const bars = barsRef.current;
     const bw   = w / bars.length;
 
     bars.forEach((p, i) => {
-      const bh    = Math.max(3, p * h * 0.82);
-      const alpha = 0.3 + (i / bars.length) * 0.7;
+      const bh    = Math.max(4, p * h * 0.82);
+      const alpha = 0.28 + (i / bars.length) * 0.72;
       const fresh = i > bars.length - 4;
+      const x = i * bw + 1.6;
+      const y = (h - bh) / 2;
+      const barW = Math.max(2.2, bw - 3.6);
+
       ctx.fillStyle = fresh
         ? `rgba(29,185,116,${alpha})`
         : `rgba(29,185,116,${alpha * 0.55})`;
-      ctx.fillRect(i * bw + 1.5, (h - bh) / 2, Math.max(2, bw - 3), bh);
+
+      drawRoundedBar(x, y, barW, bh, 3.2);
     });
   }, []);
 
@@ -217,7 +234,7 @@ export default function App() {
         <div className="panel">
           <p className="panel-title">פעילות קולית בזמן אמת</p>
           <div className="wave-wrap">
-            <canvas ref={canvasRef} style={{ width: "100%", height: "96px" }} />
+            <canvas ref={canvasRef} style={{ width: "100%", height: "110px" }} />
           </div>
         </div>
 
@@ -307,15 +324,17 @@ export default function App() {
           {events.length === 0 ? (
             <p className="no-events">אין אירועים עדיין</p>
           ) : (
-            events.slice(0, 5).map((ev, i) => (
-              <div key={i} className="event-item">
-                <div className={`event-dot ${ev.type === "calm" ? "calm" : ""}`} />
-                <div className="event-body">
-                  <p className="event-title">{ev.text}</p>
-                  <p className="event-time">{ev.time}</p>
+            <div className="events-list">
+              {events.map((ev, i) => (
+                <div key={i} className="event-item">
+                  <div className={`event-dot ${ev.type === "calm" ? "calm" : ""}`} />
+                  <div className="event-body">
+                    <p className="event-title">{ev.text}</p>
+                    <p className="event-time">{ev.time}</p>
+                  </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
       </div>

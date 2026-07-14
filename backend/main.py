@@ -21,7 +21,7 @@ API_KEY      = os.getenv("API_KEY")
 TWILIO_SID   = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_FROM  = os.getenv("TWILIO_FROM_NUMBER")
-twilio_client = Client(TWILIO_SID, TWILIO_TOKEN)
+twilio_client = Client(TWILIO_SID, TWILIO_TOKEN) if TWILIO_SID and TWILIO_TOKEN and TWILIO_FROM else None
 
 parent_phone  = None
 alert_cooldown = {}
@@ -42,7 +42,7 @@ DURATION   = 2
 STEP       = 1
 THRESHOLD  = 0.35
 
-model = keras.models.load_model("models/sos_model.keras")
+model = keras.models.load_model("models/cryguard_model.keras")
 with open("models/norm_stats.json") as f:
     _stats = json.load(f)
 MEAN, STD = _stats["mean"], _stats["std"]
@@ -84,6 +84,7 @@ class PrefsRequest(BaseModel):
 def send_sms(label: str):
     import time
     if not parent_phone:
+        print("[SMS] No phone number set")
         return
     now = time.time()
     if not alert_prefs.get(label, True):
@@ -91,11 +92,22 @@ def send_sms(label: str):
     if now - alert_cooldown.get(label, 0) < 60:
         return
     alert_cooldown[label] = now
-    twilio_client.messages.create(
-        body={"crying": "👶 התרעה: התינוק בוכה!"}.get(label, "🚨 התרעת SOS"),
-        from_=TWILIO_FROM,
-        to=parent_phone,
-    )
+
+    body = {"crying": "👶 התרעה: התינוק בוכה!"}.get(label, "🚨 התרעת CRYGUARD")
+
+    if not twilio_client:
+        print("[SMS] Twilio is not configured. Please set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_FROM_NUMBER in the .env file.")
+        return
+
+    try:
+        twilio_client.messages.create(
+            body=body,
+            from_=TWILIO_FROM,
+            to=parent_phone,
+        )
+        print(f"[SMS] Sent via Twilio to {parent_phone}")
+    except Exception as exc:
+        print(f"[SMS] Twilio failed: {exc}")
 
 
 def verify_key(key: str = Depends(api_key_header)):

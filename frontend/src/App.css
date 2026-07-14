@@ -26,21 +26,22 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px 32px;
+  padding: 20px;
   direction: rtl;
 }
 
 /* ── SHELL ── */
 .shell {
-  width: 100%;
-  max-width: 1200px;
+  width: min(68vw, 800px);
+  max-width: 800px;
+  min-width: 460px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 18px;
-  padding: 20px 28px;
+  padding: 24px 28px;
   box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 8px 40px rgba(0,0,0,0.5);
 }
 
@@ -91,16 +92,17 @@ body {
 /* ── TOP ROW ── */
 .top-row {
   display: grid;
-  grid-template-columns: 1fr 180px;
-  gap: 12px;
+  grid-template-columns: 1.35fr 240px;
+  gap: 18px;
 }
 
 /* ── PANEL BASE ── */
 .panel {
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: linear-gradient(145deg, rgba(28,35,48,0.98), rgba(20,26,36,0.96));
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
   padding: 14px 16px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.04);
 }
 .panel-title {
   font-size: 11px;
@@ -114,14 +116,16 @@ body {
 .wave-wrap {
   position: relative;
   overflow: hidden;
-  border-radius: var(--radius-sm);
-  background: var(--bg-card);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(13,17,23,0.96), rgba(22,27,34,0.95));
+  border: 1px solid rgba(255,255,255,0.04);
+  padding: 6px 0;
 }
 canvas {
   display: block;
   width: 100%;
-  height: 96px;
-  border-radius: var(--radius-sm);
+  height: 118px;
+  border-radius: 10px;
   background: transparent;
 }
 .wave-axis {
@@ -304,8 +308,8 @@ canvas {
 /* ── BOTTOM ROW ── */
 .bottom-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 18px;
 }
 
 /* ── SMS SETTINGS ── */
@@ -378,6 +382,16 @@ canvas {
 .btn-save:hover:not(:disabled) { opacity: 0.85; }
 
 /* ── EVENTS ── */
+.events-list {
+  max-height: 220px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.events-list::-webkit-scrollbar { width: 4px; }
+.events-list::-webkit-scrollbar-track { background: transparent; }
+.events-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
 .event-item {
   display: flex;
   align-items: center;
@@ -431,4 +445,126 @@ canvas {
 @keyframes blink {
   0%,100% { opacity: 1; }
   50%      { opacity: 0.3; }
+}
+
+/* ── MOBILE RESPONSIVE ── */
+@media (max-width: 768px) {
+  body {
+    padding: 6px;
+    align-items: flex-start;
+  }
+
+  .shell {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .hdr {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .hdr-title h1 {
+    font-size: 16px;
+  }
+
+  .top-row,
+  .bottom-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .status-panel {
+    padding: 8px 0;
+  }
+
+  .orb-wrap {
+    width: 82px;
+    height: 82px;
+  }
+
+  .orb-ring {
+    width: 54px;
+    height: 54px;
+  }
+
+  .orb-btn {
+    width: 42px;
+    height: 42px;
+  }
+
+  .panel {
+    padding: 10px;
+  }
+
+  .phone-row {
+    flex-direction: column;
+  }
+
+  .btn-save {
+    width: 100%;
+  }
+
+  .alert-banner {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .banner-text strong {
+    font-size: 11px;
+  }
+
+  .banner-text span {
+    font-size: 9px;
+  }
+
+  .ftr {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 6px;
+  }
+
+  .shell {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .hdr-title h1 {
+    font-size: 16px;
+  }
+
+  .panel-title {
+    margin-bottom: 8px;
+  }
+
+  .conn-pill {
+    font-size: 10px;
+    padding: 4px 10px;
+  }
+
+  .toggle-label {
+    font-size: 12px;
+  }
+
+  .toggle-sub {
+    font-size: 10px;
+  }
+
+  .event-title {
+    font-size: 12px;
+  }
+
+  .event-time {
+    font-size: 10px;
+  }
 }
