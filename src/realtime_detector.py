@@ -10,7 +10,7 @@ CATEGORIES = ["crying", "background"]
 SR         = 22050
 DURATION   = 2
 STEP       = 1
-THRESHOLD  = 0.50
+THRESHOLD  = 0.35
 
 model = keras.models.load_model(MODEL_PATH)
 with open(NORM_PATH) as f:
