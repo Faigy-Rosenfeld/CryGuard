@@ -1,45 +1,60 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import "./App.css";
 
+// ── Communication constants ────────────────────────────────────────────────────
 const API_KEY = "cryguard-secret-key-2024";
 const WS_URL  = `ws://localhost:8080/ws?api_key=${API_KEY}`;
 const API_URL = "http://localhost:8080";
 
-// כמה מתוך N שניות האחרונות צריכות להיות בכי כדי להפעיל התראה
-const CRY_WINDOW    = 6;   // בודקים חלון של 6 שניות
-const CRY_MIN_HITS  = 3;   // מספיק 3 מתוך 6 שניות של בכי
-// כמה מתוך N שניות האחרונות צריכות להיות שקט כדי לכבות התראה
-const CALM_WINDOW   = 20;  // בודקים חלון של 20 שניות
-const CALM_MIN_HITS = 18;  // 18 מתוך 20 שניות של שקט = באמת נרגע
+// ── Alert logic constants ──────────────────────────────────────────────────────
+// An alert fires when enough crying detections occur within a time window
+// (prevents false positives from a single misclassified chunk)
+const CRY_WINDOW   = 6;   // look at the last 6 seconds
+const CRY_MIN_HITS = 3;   // 3 out of 6 detections triggers the alert
+
+// Alert clears when enough silence occurs within a time window
+const CALM_WINDOW   = 20; // look at the last 20 seconds
+const CALM_MIN_HITS = 18; // 18 out of 20 seconds of silence = truly calm
 
 export default function App() {
-  const [isListening,  setIsListening]  = useState(false);
-  const [wsConnected,  setWsConnected]  = useState(false);
-  const [result,       setResult]       = useState(null);
-  const [alertState,   setAlertState]   = useState(null); // null | "crying" | "calm"
-  const [alertTime,    setAlertTime]    = useState("");
-  const [events,       setEvents]       = useState([]);
-  const [smsEnabled,   setSmsEnabled]   = useState(false);
-  const [phone,        setPhone]        = useState("");
-  const [phoneSaved,   setPhoneSaved]   = useState(false);
+  // ── State ──────────────────────────────────────────────────────────────────
+  const [isListening, setIsListening] = useState(false);          // whether the mic is active
+  const [wsConnected, setWsConnected] = useState(false);          // whether WebSocket is connected
+  const [result,      setResult]      = useState(null);           // latest classification result from server
+  const [alertState,  setAlertState]  = useState(null);           // null | "crying" | "calm"
+  const [alertTime,   setAlertTime]   = useState("");             // time of the last alert
+  const [events,      setEvents]      = useState([]);             // event history list
+  const [smsEnabled,  setSmsEnabled]  = useState(false);          // whether SMS is enabled
+  const [phone,       setPhone]       = useState("");             // phone number for SMS
+  const [phoneSaved,  setPhoneSaved]  = useState(false);          // whether the number was saved
 
-  const ws           = useRef(null);
-  const canvasRef    = useRef(null);
-  const barsRef      = useRef(Array(55).fill(0.04));
-  const animRef      = useRef(null);
-  const scaledRef    = useRef(false);
-  const cryWindowRef  = useRef([]);  // היסטוריית N שניות אחרונות (true/false)
-  const calmWindowRef = useRef([]);  // היסטוריית שקט לכיבוי התראה
-  const lastVolRef   = useRef(0.04);
-  const inAlertRef   = useRef(false);
+  // ── Refs ────────────────────────────────────────────────────────────────────
+  const ws           = useRef(null);                              // WebSocket connection
+  const canvasRef    = useRef(null);                              // canvas element for waveform
+  const barsRef      = useRef(Array(55).fill(0.04));              // waveform bar values (55 columns)
+  const animRef      = useRef(null);                              // animation frame ID
+  const scaledRef    = useRef(false);                             // whether canvas is scaled for DPI
+  const cryWindowRef  = useRef([]);                               // crying time window (true/false per second)
+  const calmWindowRef = useRef([]);                               // calm time window
+  const lastVolRef   = useRef(0.04);                              // last received volume value
+  const inAlertRef   = useRef(false);                             // whether an alert is currently active
 
-  // ── WebSocket ──
+  // ── WebSocket ──────────────────────────────────────────────────────────────
+  // Connects to the server and auto-reconnects every 3 seconds if the connection drops.
+  // The `destroyed` flag prevents reconnection after the component unmounts.
   useEffect(() => {
+    let destroyed = false;
+
     const connect = () => {
+      if (destroyed) return;
       const socket = new WebSocket(WS_URL);
       ws.current = socket;
-      socket.onopen  = () => setWsConnected(true);
-      socket.onclose = () => { setWsConnected(false); setTimeout(connect, 3000); };
+      socket.onopen  = () => { if (!destroyed) setWsConnected(true); };
+      socket.onclose = () => {
+        if (destroyed) return;
+        setWsConnected(false);
+        setTimeout(connect, 3000);
+      };
       socket.onerror = () => {};
       socket.onmessage = (e) => {
         try {
@@ -89,10 +104,15 @@ export default function App() {
       };
     };
     connect();
-    return () => ws.current?.close();
+    return () => {
+      destroyed = true;
+      ws.current?.close();
+    };
   }, []);
 
-  // ── Canvas — מצייר לפי barsRef בקצב מלא ──
+  // ── Waveform canvas ────────────────────────────────────────────────────────
+  // Draws 55 rounded green bars according to volume data received from the server.
+  // Runs on requestAnimationFrame and scales for devicePixelRatio (sharp on retina).
   const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -146,11 +166,14 @@ export default function App() {
   const isListeningRef = useRef(false);
   useEffect(() => { isListeningRef.current = isListening; }, [isListening]);
 
+  // ── Animation loop ─────────────────────────────────────────────────────────
+  // Runs continuously on requestAnimationFrame.
+  // Every 8 frames (~120ms) adds a small jitter to the bars for a natural live feel.
   useEffect(() => {
     let frameCount = 0;
     const loop = () => {
       frameCount++;
-      // כל 8 פריימים (~120ms) — מוסיף בר עם וריאציה קטנה סביב ה-volume האחרון
+      // jitter around the last known volume — keeps the waveform alive
       if (isListeningRef.current && frameCount % 8 === 0) {
         const base  = lastVolRef.current;
         const jitter = (Math.random() - 0.5) * base * 0.4;
@@ -169,7 +192,8 @@ export default function App() {
     };
   }, [drawCanvas]);
 
-  // ── Toggle listen ──
+  // ── Start / Stop ───────────────────────────────────────────────────────────
+  // Sends POST to /start or /stop, and resets all local state on stop.
   const toggle = () => {
     const next = !isListening;
     setIsListening(next);
@@ -188,7 +212,8 @@ export default function App() {
     }).catch(() => {});
   };
 
-  // ── SMS prefs → backend ──
+  // ── SMS preferences ────────────────────────────────────────────────────────
+  // Any change to smsEnabled is immediately sent to the server.
   useEffect(() => {
     fetch(`${API_URL}/prefs`, {
       method: "POST",
@@ -276,7 +301,7 @@ export default function App() {
             )}
           </div>
 
-          {/* הסתברויות — הוסרו, מיותר למשתמש */}
+          {/* probabilities removed — not useful for end users */}
         </div>
       </div>
 

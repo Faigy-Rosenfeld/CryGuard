@@ -1,19 +1,41 @@
+/*
+ * CRY-GUARD — App.css
+ * ====================
+ * Styles for the main UI of the baby monitor.
+ * Color scheme: dark mode with green accents (normal state) and red (alert state).
+ *
+ * Component layout:
+ *   .shell        — main container for the entire interface
+ *   .hdr          — top header: app name + connection status
+ *   .top-row      — waveform graph + play/stop button
+ *   .bottom-row   — SMS settings + event history
+ *   .alert-banner — alert banner (red = crying, green = calm)
+ *   .ftr          — footer: microphone status + version
+ */
+
 :root {
-  --bg-page:    #0d1117;
-  --bg-card:    #161b22;
-  --bg-panel:   #1c2330;
-  --border:     #2a3441;
-  --accent:     #1db974;
-  --accent-dim: rgba(29,185,116,0.15);
-  --accent-glow:rgba(29,185,116,0.35);
-  --danger:     #e74c3c;
-  --danger-dim: rgba(231,76,60,0.15);
-  --danger-glow:rgba(231,76,60,0.4);
-  --text-1:     #e6edf3;
-  --text-2:     #8b949e;
-  --text-3:     #484f58;
-  --radius:     14px;
-  --radius-sm:  8px;
+  /* ── Backgrounds ── */
+  --bg-page:    #0d1117;   /* page background */
+  --bg-card:    #161b22;   /* main card background */
+  --bg-panel:   #1c2330;   /* inner panel background */
+  --border:     #2a3441;   /* borders */
+
+  /* ── State colors ── */
+  --accent:      #1db974;                  /* green — normal / calm */
+  --accent-dim:  rgba(29,185,116,0.15);
+  --accent-glow: rgba(29,185,116,0.35);
+  --danger:      #e74c3c;                  /* red — crying / alert */
+  --danger-dim:  rgba(231,76,60,0.15);
+  --danger-glow: rgba(231,76,60,0.4);
+
+  /* ── Text ── */
+  --text-1: #e6edf3;   /* primary */
+  --text-2: #8b949e;   /* secondary */
+  --text-3: #484f58;   /* muted */
+
+  /* ── Border radius ── */
+  --radius:    14px;
+  --radius-sm: 8px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
