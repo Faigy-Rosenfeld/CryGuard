@@ -201,7 +201,3 @@ All of the following was built from scratch in this project:
 - Episode Tracker — cry event lifecycle management
 - Night Mode Controller — dynamic alert threshold
 - FastAPI Backend + WebSocket with broadcast to all clients
-
----
-
-*Final Project · Artificial Intelligence Track · 2024–2025*
